@@ -1,0 +1,31 @@
+#!/usr/bin/python
+import os
+import os.path
+import time
+import pynotify
+import xml.sax.saxutils
+
+folder = os.path.expanduser("~/.irssi_notifier/")
+
+pynotify.init("irssi")
+
+if not os.path.exists(folder):
+    os.mkdir(folder)
+
+while True:
+    files = os.listdir(folder)
+    for message_file in files:
+        # Read notification message
+        f = open(os.path.join(folder, message_file))
+        message = f.read()
+        f.close()
+
+        # Remove the file.
+        os.remove(os.path.join(folder, message_file))
+
+        # Create a baloon on desktop.
+        escaped_message = xml.sax.saxutils.escape(message)
+        notification = pynotify.Notification(escaped_message)
+        notification.show()
+
+    time.sleep(1)

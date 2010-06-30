@@ -1,0 +1,6 @@
+This application creates balloon tooltips when you get irssi messages.
+
+Install by executing this script:
+  ./install.sh
+
+Make sure that /usr/bin/irssi_notifier is started by gnome after login.
