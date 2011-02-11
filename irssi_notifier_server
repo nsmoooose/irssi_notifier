@@ -1,0 +1,64 @@
+#!/usr/bin/python
+import optparse
+import os
+import os.path
+import select
+import socket
+
+if __name__ == '__main__':
+    parser = optparse.OptionParser()
+    parser.add_option("-p", "--port", dest="port", type=int, help="TCP port", default=9999)
+
+    options, args = parser.parse_args()
+
+    folder = os.path.expanduser("~/.irssi_notifier/")
+    filename = os.path.join(folder, "msg")
+
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+    clients = []
+    irssi_clients = []
+
+    addr = ('', options.port)
+    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    tcp_socket.bind(addr)
+    tcp_socket.setblocking(False)
+    tcp_socket.listen(5)
+
+    if os.path.exists(filename):
+        os.remove(filename)
+    msg_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    msg_socket.bind(filename)
+    msg_socket.setblocking(False)
+    msg_socket.listen(5)
+
+    while True:
+        objects = [tcp_socket, msg_socket] + irssi_clients + clients
+        rx, tx, ex = select.select(objects, [], [])
+        for o in rx:
+            if o == msg_socket:
+                connection, addr = msg_socket.accept()
+                irssi_clients.append(connection)
+
+            elif o == tcp_socket:
+                connection, addr = tcp_socket.accept()
+                clients.append(connection)
+
+            elif o in irssi_clients:
+                message = o.recv(4096)
+                if len(message) == 0:
+                    irssi_clients.remove(o)
+                    continue
+
+                for connection in clients:
+                    connection.send(message)
+
+            elif o in clients:
+                # Lets just receive anything a
+                # client will send to us.
+                message = o.recv(100)
+                if len(message) == 0:
+                    clients.remove(o)
+                    continue

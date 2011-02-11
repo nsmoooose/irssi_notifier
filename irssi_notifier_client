@@ -1,0 +1,35 @@
+#!/usr/bin/python
+import optparse
+import select
+import socket
+import time
+import pynotify
+import xml.sax.saxutils
+
+def process(server, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((server, port))
+
+    while True:
+        message = s.recv(4096)
+        if len(message) == 0:
+            return
+
+        escaped_message = xml.sax.saxutils.escape(message)
+        notification = pynotify.Notification(escaped_message)
+        notification.show()
+
+if __name__ == '__main__':
+    parser = optparse.OptionParser()
+    parser.add_option("-p", "--port", dest="port", type=int, help="TCP port", default=9999)
+    parser.add_option("-s", "--server", dest="server", help="TCP server", default="localhost")
+
+    options, args = parser.parse_args()
+
+    pynotify.init("irssi")
+
+    while True:
+        try:
+            process(options.server, int(options.port))
+        except socket.error, msg:
+            time.sleep(10)
