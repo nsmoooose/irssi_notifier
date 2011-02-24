@@ -22,7 +22,7 @@ sub sig_printtext {
 	my $addr = $ENV{ HOME } . "/.irssi_notifier/msg";
 
 	# Do not run the command if we're not supposed to when away
-	return if ($server->{usermode_away});
+	# return if ($server->{usermode_away});
 
 	# Run the command if we're hilighted
 	if ($dest->{level} & MSGLEVEL_MSGS || (($dest->{level} & MSGLEVEL_HILIGHT) && ($dest->{level} & MSGLEVEL_NOHILIGHT) == 0)) {

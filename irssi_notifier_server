@@ -47,7 +47,12 @@ if __name__ == '__main__':
                 clients.append(connection)
 
             elif o in irssi_clients:
-                message = o.recv(4096)
+                try:
+                    message = o.recv(4096)
+                except socket.error, msg:
+                    irssi_clients.remove(o)
+                    continue
+
                 if len(message) == 0:
                     irssi_clients.remove(o)
                     continue
@@ -58,7 +63,12 @@ if __name__ == '__main__':
             elif o in clients:
                 # Lets just receive anything a
                 # client will send to us.
-                message = o.recv(100)
+                try:
+                    message = o.recv(100)
+                except socket.error, msg:
+                    clients.remove(o)
+                    continue
+
                 if len(message) == 0:
                     clients.remove(o)
                     continue
